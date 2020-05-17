@@ -1,5 +1,5 @@
 The first file (ultamateserverstarterkit.sk) is version 1.0 beta
-new versions will be realesed soon! pls go to https://www.spigotmc.org/resources/skript-ultamate-server-starter-kit.78914/
+new versions will be realesed soon!  go to https://www.spigotmc.org/resources/skript-ultamate-server-starter-kit.78914/
 if you are not sure what version is the latest version. also go there if you want to see all the features that this
 skrpt functions add.
 
