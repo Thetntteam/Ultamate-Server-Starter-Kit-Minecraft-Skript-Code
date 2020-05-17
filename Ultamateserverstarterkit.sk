@@ -1,0 +1,660 @@
+##########################################################
+#														 # 
+# Ultamate server starter kit by Thetntteam              #
+#                                                        #
+# DO NOT EDIT ANYTHING, UNLESS YOU KNOW WHAT YOUR DOING. #
+# You can edit any of the the custom messages.           #
+##########################################################
+
+  #credit to infinitereaches for bad word detecter and Mdriscoll03 for help with the GUI skript
+    #Credit to cmdblox for the captcha code
+    # Thanks to Spark for teaching me skript
+
+on join:
+	set join message to "&2[&1+&2] %player%"
+
+
+on quit:
+	set leave message to "&2[&4-&2] %player%"
+    
+    #you may edit any of the bad words and add custom ones!
+    
+    on chat:
+    
+	if message is "fuck", "shit", "nigga", "nigg", "dick", "sh!t" or "bad server":
+		cancel event
+		message "&6-----------------------------------------"
+		message "&c&lSwearing and attempting to circumvent the filter"
+		message "&c&lare against the rules."
+		message "&6-----------------------------------------"	
+        
+        #Dont edit the captcha
+      
+        
+        options:
+	prefix: &8[&2&lCAPTCHA&8]&a
+	SecurityLevel: 1
+	# SecurityLevel 1 = math, SecurityLevel 2 = Math + Sneak
+	time: 1
+on join:
+	player does not have permission "captcha.bypass":
+		set {asking.%player%} to true
+		set {r1.%player%} to random integer between 1 and 20
+		set {r2.%player%} to random integer between 1 and 20
+		send title "{@prefix} Complete the captcha" with subtitle "&7What is %{r1.%player%}% + %{r2.%player%}%? &o(Type in chat)" to player
+		send ""
+		send "{@prefix} What is %{r1.%player%}% + %{r2.%player%}%?"
+		send ""	
+		set {askedtime.%player%} to now
+		wait 20 seconds
+		{asking.%player%} is true
+		kick the player because "{@prefix} Failed the captcha!"
+	else:
+		send "{@prefix} You do not need to complete the captcha because you are an operator"
+on command:
+	{asking.%player%} is true
+	kick the player because "{@prefix} Failed the captcha!"
+on chat:
+	{asking.%player%} is true
+	cancel event
+	set {_add} to {r1.%player%} + {r2.%player%}
+	message is "%{_add}%":
+		difference between {askedtime.%player%} and now < {@time} seconds:
+			kick the player because "{@prefix} You answered a little quickly. Come back and try again."
+		else:
+			send ""
+			send "{@prefix} You passed the captcha!"
+			send ""
+			set {asking.%player%} to false
+			{@SecurityLevel} is 2
+			set {sneaks.%player%} to 0
+			set {asking.%player%} to true
+			send ""
+			send "{@prefix} To further confirm your humanity, please toggle sneak 3 times (sneak, unsneak, sneak)"
+			send ""
+			
+	else:
+		kick the player because "{@prefix} Failed the captcha!"	
+on sneak toggle:
+	add 1 to {sneaks.%player%}
+	{sneaks.%player%} = 3
+	set {asking.%player%} to false
+	send ""
+	send "{@prefix} You passed the captcha!"
+	send ""
+on damage:
+	{asking.%victim%} is true:
+		cancel event
+		send "{@prefix} This player still needs to complete the captcha!" where [{asking.%victim%} is true]
+	{asking.%attacker%} is true:
+		cancel event
+		send "{@prefix} You need to complete the captcha!" where [{asking.%attacker%} is true]
+        
+        
+        
+        #captcha code is over!
+        #dont mess with this code unless you know what you are doing
+        
+        command /gm [<player>]:
+	permission: yourserver.admin
+	permission message: &c(!) You don't have permission to execute this command.
+	trigger:
+		if argument 1 is not set:
+			if player's gamemode is survival:
+			set the player's gamemode to creative
+			send "&a(!) Your gamemode was updated to &fCreative&e."
+			else:
+			set the player's gamemode to survival
+			send "&a(!) Your gamemode was updated to &fSurvival&e."
+		    else:
+			if arg-1's gamemode is survival:
+			set the arg-1's gamemode to creative
+			send "&a(!) Your gamemode was updated to &fCreative&e."
+			else:
+			set the arg-1's gamemode to survival
+			send "&a(!) Your gamemode was updated to &fSurvival&e."	
+                
+                #This next code is for bans/tempbans GUI  do not edit unless you know what you are doing
+            
+                
+                command /ban [<offline player>] [<text>]:
+	aliases: /tempban
+	permission: ban.use
+	permission message: &cNo Permission.
+	trigger:
+		if arg-1 is not set:
+			send "&7[&cBan&7] &c/ban &7<player> [reason]"
+		if arg-1 is set:
+			open chest with 2 rows named "&b&lSelect Ban Reason" to player
+			wait 1 tick
+			format slot 0 of player with iron sword named "&aKill Aura" with lore "" to close then run [make player execute command "/litebans:ban %arg-1% Kill Aura"] 
+			format slot 1 of player with lead named "&aAnti-Knockback" with lore "" to close then run [make player execute command "/litebans:ban %arg-1% Anti-Knockback"] 
+			format slot 2 of player with ghast tear named "&aFlying" with lore "" to close then run [make player execute command "/litebans:ban %arg-1% Flying"]
+			format slot 3 of player with speed potion named "&aSpeed" with lore "" to close then run [make player execute command "/litebans:ban %arg-1% Speed"]
+			format slot 4 of player with apple named "&aFast Eat" with lore "" to close then run [make player execute command "/litebans:ban %arg-1% Fast Eat"]
+			format slot 5 of player with compass named "&aBan Evasion" with lore "" to close then run [make player execute command "/litebans:ban %arg-1% Ban Evasion"]
+			format slot 6 of player with daylight sensor named "&aBug Abuse" with lore "" to close then run [make player execute command "/litebans:tempban %arg-1% 2d Bug Abuse"]
+			format slot 7 of player with melon slice named "&aNo Slowdown" with lore "" to close then run [make player execute command "/ban %arg-1% No Slowdown"] 
+			format slot 8 of player with boat named "&aOther" with lore "" to close then run [make player execute command "/litebans:ban %arg-1% %arg 2%"]
+			format slot 17 of player with red wool named "&aCancel" with lore "" to close
+            
+            
+            #This is the Report function do not edit unless you know what you are doing you also need SkQuery plugin for this
+            
+            Options:
+	WaitMsg: &cWait a minute before reporting someone again.
+	ReasonError: &cUsage: /report <player> <reason>
+	PlayerError: &cThis player is not online.
+	Delay: 60 # In seconds!
+	
+command /report <player> <text>:
+	executable by: players
+	trigger:
+		if arg 1 is not set:
+			send "&cUsage: /report <player> <reason>"
+			stop
+		if arg 2 is not set:
+			send "&cUsage: /report <player> <reason>"
+			stop
+		arg 1 is a player:
+			arg 2 is set:
+				set {_waited} to difference between {report.%player%.lastused} and now
+				if {_waited} is less than {@Delay} seconds:
+					message "{@WaitMsg}"
+					stop
+				if arg-1 is "%player%":
+					message "&cWhy are you trying to report yourself? Are you hacking? O.o"
+					stop
+				loop all players:
+					loop-player has the permission "report.staff":
+						send "&7&m--------------------------------" to loop-player
+						send "&c&lPLAYER REPORT" to loop-player
+						send "&7Reported Player: &c%arg-1%" to loop-player
+						send "&7Reporting Player: &a%player%" to loop-player
+						send "&7Reason: &3%arg-2%" to loop-player
+						send json "&7(Click to teleport)" tooltip "&7Click to teleport to &a%arg-1%&7." run "/tp %arg-1" to loop-player
+						send "&7&m--------------------------------" to loop-player
+						execute console command "playsound mob.wither.spawn %loop-player% ~ ~ ~ 10 1 1.0"
+						set {report.%player%.lastused} to now
+				message "&7[&c&lReport&7] &7You have reported &c%arg-1% &7for &c%arg-2%&7."
+ 
+            
+            #The code for /rank system
+            
+  options:
+	p: &8[&4&lYou&f&ltube&8]
+
+command /rank [<text>] [<offline player>] [<text>]:
+	permission: rank.admin
+	permission message: &8[&4&lYou&f&ltube&8] &cNo Permissions!
+	trigger:
+		if arg 1 is not set:
+			send "&c-----------------------------"
+			send "&4/rank set <player> <rank>"
+			send "&4/rank list"
+			send "&4/rank reset <player>"
+			send "&4/rnak info"
+			send "&c-----------------------------"
+		if arg 1 is "set":
+			if arg 2 is set:
+				if arg 3 is "owner":
+					set {rank.%arg 2%} to "&4&lOwner"
+					broadcast "&8[&4&lYou&f&ltube&8] &6%arg 2% &eis our NEW &4&lOwner&e!"
+				if arg 3 is "co-owner":
+					set {rank.%arg 2%} to "&9&lCo-Owner"
+					broadcast "&8[&4&lYou&f&ltube&8] &6%arg 2% &eis our NEW &9&lCo-Owner&e!"
+				if arg 3 is "sr-admin":
+					set {rank.%arg 2%} to "&c&lSr. Admin"
+					broadcast "&8[&4&lYou&f&ltube&8] &6%arg 2% &eis our NEW &c&lSr. Admin&e!"
+				if arg 3 is "admin":
+					set {rank.%arg 2%} to "&c&lAdmin"
+					broadcast "&8[&4&lYou&f&ltube&8] &6%arg 2% &eis a NEW &c&lAdmin&e!"
+				if arg 3 is "sr-mod":
+					set {rank.%arg 2%} to "&a&lSr. Mod"
+					broadcast "&8[&4&lYou&f&ltube&8] &6%arg 2% &eis our NEW &a&lSr. Mod&e!"
+				if arg 3 is "mod":
+					set {rank.%arg 2%} to "&a&lMod"
+					broadcast "&8[&4&lYou&f&ltube&8] &6%arg 2% &eis a NEW &a&lMod&e!"
+				if arg 3 is "helper":
+					set {rank.%arg 2%} to "&2&lHelper"
+					broadcast "&8[&4&lYou&f&ltube&8] &6%arg 2% &eis a NEW &2&lHelper&e!"
+				if arg 3 is "h-builder":
+					set {rank.%arg 2%} to "&1&lH-Builder"
+					broadcast "&8[&4&lYou&f&ltube&8] &6%arg 2% &eis our NEW &1&lHead-Builder&e!"
+				if arg 3 is "builder":
+					set {rank.%arg 2%} to "&1&lBuilder"
+					broadcast "&8[&4&lYou&f&ltube&8] &6%arg 2% &eis a NEW &1&lBuilder&e!"
+				if arg 3 is "member":
+					set {rank.%arg 2%} to "&7&lMember"
+			else:
+				send "{@p} &4/rank <player> <rank>"
+				send "&cDon't know wich ranks theire are? Use &4/rank list"
+		if arg 1 is "list":
+			send "&c----------------------------------------"
+			send "&4Owner &7==> &fGroup Name: &8owner"
+			send "&9CO-Owner &7==> &FGroup Name: &8co-owner"
+			send "&5Manager &7==> &fGroup Name: &8manager"
+			send "&cSr. Admin &7==> &fGroup Name: &8sr-admin"
+			send "&cAdmin &7==> &fGroup Name: &8admin"
+			send "&aSr. Mod &7==> &fGroup Name: &8sr-mod"
+			send "&aMod &7==> &fGroup Name: &8mod"
+			send "&2Helper &7==> &fGroup Name: &8helper"
+			send "&1H-Builder &7==> &fGroup Name: &8h-builder"
+			send "&1Builder &7==> &fGroup Name: &8builder"
+			send "&c----------------------------------------"
+		if arg 1 is "reset":
+			if arg 2 is set:
+				set {rank.%arg 2%} to "&7&lMember"
+				send "{@p} &cThe rank of &4%arg 2% &chas been reset to &7&lMember"
+				send "{@p} &cYour rank has been reset by &4%player%! &cYour current rank is now &7&lMember" to arg 2
+			else:
+				send "{@p} &c/rank reset <player> &7:: &8It sets the rank of the player to &7&lMember"
+		if arg 1 is "info":
+			send "&c----------------------------------------"
+			send "&4This server uses the plugin: ultamate  
+			send "&4server starter kit
+			send "&c----------------------------------------"
+
+
+on chat:
+	cancel event
+	broadcast "%{rank.%player%}% &7%player% &8>> &f%message%"  
+    
+    #Mail function
+    
+    options:
+	prefix: &8&l< &3&lMail&b&l+ &8&l>
+	characterLengthSplit: 20
+	subjectIcon: paper
+	
+function mailbox(p: player, t: text, page: integer, subject: text):
+	set {_i} to 14*{_page} - 13
+	create a gui with virtual chest named "&1%{_t}% &0[&4%{_subject}% %{_page}%&0]" with 4 rows:
+		loop 4*9 times:
+			make gui slot loop-number - 1 to black glass pane named " "
+		if {_page} > 1:
+			make gui slot 9 to red stained clay named "&cPrevious Page &8[&e%{_page} - 1%&8]":
+				mailbox({_p}, {_t}, "%{_page} - 1%" parsed as integer, "%{_subject}%")
+			make gui slot 18 to red stained clay named "&cPrevious Page &8[&e%{_page} - 1%&8]":
+				mailbox({_p}, {_t}, "%{_page} - 1%" parsed as integer, "%{_subject}%")
+		make gui slot 17 to green stained clay named "&aNext Page &8[&e%{_page} + 1%&8]":
+			mailbox({_p}, {_t}, "%{_page} + 1%" parsed as integer, "%{_subject}%")
+		make gui slot 26 to green stained clay named "&aNext Page &8[&e%{_page} + 1%&8]":
+			mailbox({_p}, {_t}, "%{_page} + 1%" parsed as integer, "%{_subject}%")
+		make gui slot 4*9 - 5 to command block named "&8&l< &e&lHelp &8&l>":
+			make {_p} execute command "mail help"
+		loop 14 times:
+			if loop-number <= 7:
+				set {_slot} to loop-number + 9
+			if loop-number > 7:
+				set {_slot} to loop-number + 11
+			
+			if {_slot} is set:
+				if "%{_subject}%" is "<none>":
+					if {mailbox::%{_t}%::%{_i}%} is set:
+						set {_size} to 0
+						loop {mailbox::%{_t}%::%{_i}%::*}:
+							add 1 to {_size}
+						set {_icon} to {@subjectIcon} named "&8&l< &b&l%{mailbox::%{_t}%::%{_i}%}% &8&l>" with lore "||&bThere are &a%{_size}% &bMessages"
+						make gui slot {_slot} to {_icon}:
+							mailbox({_p}, {_t}, 1, "%{mailbox::%{_t}%::%{_i}%}%")
+					else:
+						make gui slot {_slot} to gray dye named " "
+				else:
+					make gui slot 4*9 - 5 to tnt named "&8&l< &c&lBack &8&l>":
+						mailbox({_p}, {_t}, 1, "<none>")
+					make gui slot 4*9 - 4 to book named "&8&l< &c&lDelete Mail &8&l>" with lore "||&fRight click to delete the mail"
+					make gui slot 4*9 - 6 to book named "&8&l< &e&lInteract Mail &8&l>" with lore "||&fLeft click to interact with mail"
+					loop {mailbox::%{_t}%::*}:
+                    if "%loop-value-2%" is "%{_subject}%":
+							if {mailbox::%{_t}%::%loop-index-1%::%{_i}%} is set:
+								set {_type} to "%{mailbox::%{_t}%::%loop-index-1%::%{_i}%::type}%"
+								set {_msg} to "%{mailbox::%{_t}%::%loop-index-1%::%{_i}%}%"
+								set {_sender} to "%{mailbox::%{_t}%::%loop-index-1%::%{_i}%::sender}%"
+								set {_item} to {mailbox::%{_t}%::%loop-index-1%::%{_i}%::item}
+								
+								make gui slot {_slot} to {mailbox::%{_t}%::%loop-index-1%::%{_i}%::icon}:
+									if "%gui-click-type%" is "right mouse button":
+										if {_p} has permission "mailplus.admin":
+											make {_p} execute command "mail delete %{_t}% %{_subject}% %{_i}%"
+                                            else:
+											make {_p} execute command "mail delete %{_subject}% %{_i}%"
+										mailbox({_p}, {_t}, {_page}, "%{_subject}%")
+										stop
+									else:
+										if "%{_type}%" is "MSG":
+											send "{@prefix} &aReading mail from &e%{_sender}%" to {_p}
+											send " " to {_p}
+											send "&f&o%{_msg}%" to {_p}
+											send ""
+											stop
+										if "%{_type}%" is "PRESENT":
+											if "%{_t}%" isn't "%{_sender}%":
+                                            if {_p}'s inventory has enough space for {_item}:
+													give {_item} to {_p}
+													if {_p} has permission "mailplus.admin":
+														make {_p} execute command "mail delete %{_t}% %{_subject}% %{_i}%"
+													else:
+														make {_p} execute command "mail delete %{_subject}% %{_i}%"
+													send "{@prefix} &aReading mail from &e%{_sender}%" to {_p}
+													send " " to {_p}
+													send "&f&o%{_msg}%" to {_p}
+													send ""
+													mailbox({_p}, {_t}, {_page}, {_subject})
+													stop
+												else:
+													send "{@prefix} &eYou don't have enough space in your inventory" to {_p}
+													stop
+											else:
+												send "{@prefix} &eYou cannot claim your own present" to {_p}
+												stop
+										else:
+											send "{@prefix} &cUnidentified type or Error occured!" to {_p}
+											stop
+							else:
+								make gui slot {_slot} to gray dye named " "
+						
+			add 1 to {_i}
+	open last gui to {_p}
+	
+function sendMail(p: player, t: text, msg: text, subject: text, type: text):
+	if {_type} is "PRESENT":
+		if {_p}'s tool is air:
+			send "{@prefix} &cYou cannot send air!" to {_p}
+            stop
+		else:
+			set {_test} to false
+			while {_test} is false:
+				set {_tool} to {_p}'s tool
+				set {_test} to true
+			remove {_tool} from {_p}'s inventory	
+	if "%{mailbox::%{_t}%::*}%" doesn't contain "%{_subject}%":
+		set {_test} to false
+		loop size of {mailbox::%{_t}%::*} + 14 times:
+			if {mailbox::%{_t}%::%loop-number%} isn't set:
+				set {mailbox::%{_t}%::%loop-number%} to "%{_subject}%"
+				set {_test} to true
+                stop loop
+		if {_test} isn't true:
+			add {_subject} to {mailbox::%{_t}%::*}
+	if "%{mailbox::%{_p}%::*}%" doesn't contain "%{_subject}%":
+		set {_test} to false
+		loop size of {mailbox::%{_p}%::*} + 14 times:
+			if {mailbox::%{_p}%::%loop-number%} isn't set:
+				set {mailbox::%{_p}%::%loop-number%} to "%{_subject}%"
+				set {_test} to true
+				stop loop
+		if {_test} isn't true:
+			add {_subject} to {mailbox::%{_p}%::*}
+	loop {mailbox::%{_t}%::*}:
+		if "%{mailbox::%{_t}%::%loop-index%}%" is "%{_subject}%":
+			add "%colored {_msg}%" to {mailbox::%{_t}%::%loop-index%::*}
+			add "%colored {_msg}%" to {mailbox::%{_p}%::%loop-index%::*}
+			
+			
+			set {_msg} to {_msg}
+			set {_split::*} to {_msg} split at " "
+			set {_length} to 0
+			loop {_split::*}:
+				if {_final} isn't set:
+					set {_final} to "&f%{_split::%loop-index-2%}%"
+					set {_length} to {_final}'s length
+				else:
+					if {_length} + {_split::%loop-index-2%}'s length > {@characterLengthSplit}:
+						set {_final} to "&f%{_final}%||&f%{_split::%loop-index-2%}%"
+						set {_length} to 0
+					else:
+						set {_final} to "&f%{_final}% &f%{_split::%loop-index-2%}%"
+						set {_length} to {_length} + {_split::%loop-index-2%}'s length
+			
+			
+			
+			loop {mailbox::%{_t}%::%loop-index%::*}:
+				if "%{mailbox::%{_t}%::%loop-index-1%::%loop-index-2%}%" is "%colored {_msg}%":
+					set {_icon} to air
+					if {_type} is "MSG":
+						set {_icon} to ("%{_p}%" parsed as offline player)'s skull named "&8[&a%loop-index-2%&8] &3%{_p}% &7&l> &b%{_subject}%" with lore "||&e&lMESSAGE||&f%colored {_final}%"
+					if {_type} is "PRESENT":
+						set {_icon} to {_tool} with lore "%lore of {_tool}%||||&8[&a%loop-index-2%&8] &3%{_p}% &7&l> &b%{_subject}%"
+						set {mailbox::%{_t}%::%loop-index-1%::%loop-index-2%::item} to {_tool}
+					set {mailbox::%{_t}%::%loop-index-1%::%loop-index-2%::icon} to {_icon}
+                    set {mailbox::%{_t}%::%loop-index-1%::%loop-index-2%::sender} to {_p}
+					set {mailbox::%{_t}%::%loop-index-1%::%loop-index-2%::type} to "%{_type}%"
+			loop {mailbox::%{_p}%::%loop-index%::*}:
+				if "%{mailbox::%{_p}%::%loop-index-1%::%loop-index-2%}%" is "%colored {_msg}%":
+					set {_icon} to air
+					if {_type} is "MSG":
+						set {_icon} to ("%{_t}%" parsed as offline player)'s skull named "&8[&a%loop-index-2%&8] &3%{_p}% &7&l> &b%{_subject}%" with lore "||&e&lMESSAGE||&f%colored {_final}%"
+					if {_type} is "PRESENT":
+						set {_icon} to {_tool} with lore "%lore of {_tool}%||||&8[&a%loop-index-2%&8] &3%{_p}% &7&l> &b%{_subject}%"
+						set {mailbox::%{_p}%::%loop-index-1%::%loop-index-2%::item} to {_tool}
+					set {mailbox::%{_p}%::%loop-index-1%::%loop-index-2%::sender} to {_p}
+					set {mailbox::%{_p}%::%loop-index-1%::%loop-index-2%::type} to "%{_type}%"
+			send "{@prefix} &aMail has been sent to &e%{_t}%" to {_p}
+			send "{@prefix} &aYou've got a mail from &e%{_p}%!" to "%{_t}%" parsed as player
+	
+	
+	
+command /mail [<text>] [<Text>] [<text>] [<text>]:
+	aliases: mails, mailplus, mailsplus
+	trigger:
+		if arg 1 isn't set:
+			mailbox(player, "%player%", 1, "<none>")
+			stop
+		if arg 1 is "help" or "?":
+			send center "&3&lMail&b&l+ &a&lv2.0" to player
+			send ""
+			send "&7- &3/mail &bsend <Player> <Subject> <Message>"
+			send "&7- &3/mail &bdelete <Subject> <Message Index>"
+			send "&7- &3/mail &bpresent <Player> [<Subject> <Message>]"
+			send "&7- &3/mail &bclear [Subject]"
+			send "&7- &3/mail &bcheck <Subject>"
+			send "&7- &3/mail &cadmin"
+			send ""
+			stop
+		if player has permission "mailplus.admin":
+			if arg 1 is "admin":
+				send center "&3&lMail&b&l+ &a&lv2.0" to player
+				send ""
+				send "&7- &3/mail &ccheck <Player> [Subject]"
+				send "&7- &3/mail &cdelete <Player> <Subject> <Message Index>"
+				send ""
+				stop
+            if arg 1 is "check" or "open":
+			if player has permission "mailplus.admin":
+				if arg 2 is set:
+					if arg 3 is set:
+						mailbox(player, "%arg 2%", 1, "%arg 3%")
+						stop
+					if arg 3 isn't set:
+						mailbox(player, "%arg 2%", 1, "<none>")
+						stop
+			if arg 2 is set:
+				mailbox(player, "%player%", 1, "%arg 2%")
+				stop
+			if arg 2 isn't set:
+				mailbox(player, "%player%", 1, "<none>")
+				stop
+			
+		if arg 1 is "present" or "gift" or "give":
+			if arg 2 is set:
+				if "%arg 2%" is "%player%":
+					send "{@prefix} &cYou cannot send present to your self"
+					stop
+				if arg 3 isn't set:
+					sendMail(player, "%arg 2%", "&fNo Message", "Gift", "PRESENT")
+					stop
+				if arg 3 is set:
+					if arg 4 isn't set:
+						sendMail(player, "%arg 2%", "&fNo Message", "%arg 3%", "PRESENT")
+						stop
+					if arg 4 is set:
+						sendMail(player, "%arg 2%", "&f%arg 4%", "%arg 3%", "PRESENT")
+						stop
+		if arg 1 is "delete":
+			if player has permission "mailplus.admin":
+				set {_t} to "%arg 2%" parsed as player
+				set {_sub} to "%arg 3%"
+				if arg 4 isn't set:
+					set {_index} to 1
+				if "%arg 4%" parsed as integer > 0:
+					set {_index} to "%arg 4%" parsed as integer
+				else:
+					set {_index} to 1
+			else:
+				if arg 2 is set:
+					set {_sub} to "%arg 2%"
+					if arg 3 isn't set:
+					sendMail(player, "%arg 2%", "&fNo Message", "Gift", "PRESENT")
+					stop
+				if arg 3 is set:
+					if arg 4 isn't set:
+						sendMail(player, "%arg 2%", "&fNo Message", "%arg 3%", "PRESENT")
+						stop
+                        if arg 4 is set:
+						sendMail(player, "%arg 2%", "&f%arg 4%", "%arg 3%", "PRESENT")
+						stop
+		if arg 1 is "delete":
+			if player has permission "mailplus.admin":
+				set {_t} to "%arg 2%" parsed as player
+				set {_sub} to "%arg 3%"
+				if arg 4 isn't set:
+					set {_index} to 1
+				if "%arg 4%" parsed as integer > 0:
+					set {_index} to "%arg 4%" parsed as integer
+				else:
+					set {_index} to 1
+			else:
+				if arg 2 is set:
+					set {_sub} to "%arg 2%"
+					if arg 3 isn't set:
+						set {_index} to 1
+					if "%arg 3%" parsed as integer > 0:
+						set {_index} to "%arg 3%" parsed as integer
+					else:
+						set {_index} to 1
+					set {_t} to player
+					
+			loop {mailbox::%{_t}%::*}:
+				if "%loop-value%" is "%{_sub}%":
+					delete {mailbox::%{_t}%::%loop-index%::%{_index}%}
+					clear {mailbox::%{_t}%::%loop-index%::%{_index}%::*}
+					send "{@prefix} &eYou deleted index &6%{_index}% &efrom &b%loop-value%"
+					
+					if size of {mailbox::%{_t}%::%loop-index%::*} <= 0:
+						delete {mailbox::%{_t}%::%loop-index%}
+						remove loop-index from {mailbox::%{_t}%::*}
+			stop
+		if arg 1 is "clear":
+			if arg 2 isn't set:
+				clear {mailbox::%player%::*}
+				send "{@prefix} &eCleared all subject and items in Mailbox!"
+				stop
+			if arg 2 is set:
+				loop {mailbox::%player%::*}:
+					if "%loop-value%" is "%arg 2%":
+						clear {mailbox::%player%::%loop-index%::*}
+						remove loop-value from {mailbox::%player%::*}
+                        send "{@prefix} &eCleared all data from subject called &b%arg 2%"
+						stop
+				send "{@prefix} &eSubject &b%arg 2%&e not found"
+				stop
+		if arg 1 is "send":
+			if arg 2 is set:
+				if arg 3 is set:
+					if arg 4 is set:
+						sendMail(player, "%arg 2%", "%arg 4%", "%arg 3%", "MSG")
+						stop
+				if arg 3 isn't set:
+					send "{@prefix} &cPlease insert the subject name!"
+					stop
+				if arg 3 is "<none>":
+					send "{@prefix} &cYou cannot use that name for the subject!"
+					stop
+                    
+                    #here is code for /spawn
+                    
+                    options:
+#Teleport players to spawn whenever they join
+	TPJoin: true
+#Announce the new players when they join for the first time
+	FirstJoin: true
+#Hide join Messages
+	JoinMessage: true
+#Hide quit Messages
+	QuitMessage: true
+
+command /setspawn:
+	aliases: spawnset, sethub, hubset, setlobby, lobbyset
+	permission: spawn.setspawn
+	permission message: &cSorry, but you don't have permission to execute this command!
+	description: Set spawn at your location.
+	trigger:
+		message "&6You have &cset spawn&6 at your location!"
+		set {spawn} to location of player
+
+command /spawn [<player>]:
+	aliases: hub, lobby
+	description: Teleport you to spawn.
+	trigger:
+		if {spawn} isn't set:
+			message "&4Error:&c spawn is not set!"
+			stop
+		else:
+			argument 1 is not set:
+				teleport player to {spawn}
+				message "&6Teleporting..."
+			else:
+				if sender has permission "spawn.spawn.others":
+					if argument is online:
+						teleport argument to {spawn}
+					if sender is a player:
+						message "&6You have been teleported to spawn by &c%player%&6." to argument 1
+					if sender is not a player:
+						message "&6You have been teleported to spawn by &cConsole&6." to argument 1
+						teleport player to {spawn}
+				else:
+					message "&cSorry, but you don't have permission to execute this command!"
+
+command /delspawn:
+	permission: spawn.spawn.delete
+	permission message: &cSorry, but you don't have permission to execute this command!
+	description: Unset spawn location.
+	trigger:
+		delete {spawn}
+		message "&6You have successfully unset &cspawn6!"
+
+
+on first join:
+	teleport player to {spawn}
+	if {@FirstJoin} is true:
+		broadcast "&dPlease welcome player &9%player's display name% &dhe/she have joined the server for the first time."
+	else:
+		stop
+
+on join:
+	if {@JoinMessage} is true:
+		set join message to ""
+		stop
+	else:
+		stop
+	if {spawn} is set:
+		if {@TPJoin} is true:
+			teleport player to {spawn}
+		else:
+			stop
+	else:
+		stop
+
+on quit:
+	if {@QuitMessage} is true:
+		set leave message to ""
+		stop
+	else:
+		stop
+					
+     
+        
+        
+        
+        
