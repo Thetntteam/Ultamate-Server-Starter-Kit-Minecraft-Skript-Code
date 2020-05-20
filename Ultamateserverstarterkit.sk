@@ -652,6 +652,892 @@ on quit:
 		stop
 	else:
 		stop
+        
+        #code for anticheat
+        
+        
+function "createConfig":
+	create file "plugins/ExoSec/config.yml"
+	wf "##=============================##" to "plugins/ExoSec/config.yml"
+	wf "##        ExoSec  Config       ##" to "plugins/ExoSec/config.yml"
+	wf "##=============================##" to "plugins/ExoSec/config.yml"
+	# Configuration Options (Generation)
+	wf " " to "plugins/ExoSec/config.yml"
+	wf "Prefix:" to "plugins/ExoSec/config.yml"
+	wf "Banwave:" to "plugins/ExoSec/config.yml"
+	wf "AutoBan:" to "plugins/ExoSec/config.yml"
+	wf "AntiSpam:" to "plugins/ExoSec/config.yml"
+	wf "PreventHacks:" to "plugins/ExoSec/config.yml"
+	wf "AntiBots:" to "plugins/ExoSec/config.yml"
+	wf "Banwave-Password:" to "plugins/ExoSec/config.yml"
+	wf "Banwave:" to "plugins/ExoSec/config.yml"
+	wf "Vl-Required:" to "plugins/ExoSec/config.yml"
+	# Configuration Options (Defaults)
+	set "Prefix" to "&8[&3Exo &b2.0&8]" in yaml file "plugins/ExoSec/config.yml"
+	set "Banwave" to "false" in yaml file "plugins/ExoSec/config.yml"
+	set "AutoBan" to "false" in yaml file "plugins/ExoSec/config.yml"
+	set "AntiSpam" to "false" in yaml file "plugins/ExoSec/config.yml"
+	set "PreventHacks" to "false" in yaml file "plugins/ExoSec/config.yml"
+	set "AntiBots" to "true" in yaml file "plugins/ExoSec/config.yml"
+	set "Banwave-Password" to "12345" in yaml file "plugins/ExoSec/config.yml"
+	set "Vl-Required" to "15" in yaml file "plugins/ExoSec/config.yml"
+	
+function "createPerms":
+	create file "plugins/ExoSec/permissions.yml"
+	wf "##=============================##" to "plugins/ExoSec/permissions.yml"
+	wf "##         ExoSec Perms        ##" to "plugins/ExoSec/permissions.yml"
+	wf "##=============================##" to "plugins/ExoSec/permissions.yml"
+	# Permissions Nodes (Generation)
+	wf " " to "plugins/ExoSec/permissions.yml"
+	wf "AlertPerm:" to "plugins/ExoSec/permissions.yml"
+	wf "CommandPerm:" to "plugins/ExoSec/permissions.yml"
+	wf "CheckManagerPerm:" to "plugins/ExoSec/permissions.yml"
+	wf "BypassAntiSpam:" to "plugins/ExoSec/permissions.yml"
+	# Permission Nodes (Defaults)
+	set "AlertPerm" to "exosec.alerts" in yaml file "plugins/ExoSec/permissions.yml"
+	set "CommandPerm" to "exosec.admin" in yaml file "plugins/ExoSec/permissions.yml"
+	set "CheckManagerPerm" to "exosec.checks" in yaml file "plugins/ExoSec/permissions.yml"
+	set "BypassAntiSpam" to "exosec.bypass.antispam" in yaml file "plugins/ExoSec/permissions.yml"
+
+on script load:
+	if folder "plugins/ExoSec" doesn't exists:
+		create folder "plugins/ExoSec"
+	if file "plugins/ExoSec/config.yml" doesn't exist:
+		access "createConfig"
+	if file "plugins/ExoSec/permissions.yml" doesn't exist:
+		access "createPerms"
+	set {Prefix} to single value "Prefix" get of "plugins/ExoSec/config.yml"
+	set {Banwave} to single value "Banwave" get of "plugins/ExoSec/config.yml"
+	set {AutoBan} to single value "AutoBan" get of "plugins/ExoSec/config.yml"
+	set {AntiSpam} to single value "AntiSpam" get of "plugins/ExoSec/config.yml"
+	set {PreventHacks} to single value "PreventHacks" get of "plugins/ExoSec/config.yml"
+	set {AlertPerm} to single value "AlertPerm" get of "plugins/ExoSec/permissions.yml"
+	set {CommandPerm} to single value "CommandPerm" get of "plugins/ExoSec/permissions.yml"
+	set {CheckManagerPerm} to single value "CheckManagerPerm" get of "plugins/ExoSec/permissions.yml"
+	set {AntiBots} to single value "AntiBots" get of "plugins/ExoSec/permissions.yml"
+	set {Banwave-Password} to single value "Banwave-Password" get of "plugins/ExoSec/config.yml"
+	set {Vl-Required} to single value "VL-Required" get of "plugins/ExoSec/config.yml"
+	send "%{Prefix}% &7Successfully loaded %script name%" to console
+	
+#	Boolean Checks
+
+on load:
+	if {Banwave} is not "true" or "false":
+		send "%{Prefix}% &cError: &8You need to specify a boolean (true or false) for option Banwave" to console
+	if {AutoBan} is not "true" or "false":
+		send "%{Prefix}% &cError: &8You need to specify a boolean (true or false) for option AutoBan" to console
+	if {AntiSpam} is not "true" or "false":
+		send "%{Prefix}% &cError: &8You need to specify a boolean (true or false) for option AntiSpam" to console
+	if {PreventHacks} is not "true" or "false":
+		send "%{Prefix}% &cError: &8You need to specify a boolean (true or false) for option PreventHacks" to console
+	if {AntiBots} is not "true" or "false":
+		send "%{Prefix}% &cError: &8You need to specify a boolean (true or false) for option AntiBots" to console
+		
+#-----------------------------------------------------------------------------------------------------------------#
+
+#	Player Check Setter
+
+on join:
+	if {registered.%player%} is not set:
+		set {killaura.%player%} to 0
+		set {multiaura.%player%} to 0
+		set {registered.%player%} to true
+		set {antikb.%player%} to 0
+		set {sneaking.%player%} to 0
+		set {fastplace.%player%} to 0
+		set {fastbreak.%player%} to 0
+		set {fly.%player%} to 0
+		set {jesus.%player%} to 0
+		set {fastbow.%player%} to 0
+		stop
+		
+#	Player Alerts System
+
+on join:
+	if player has permission "%{AlertPerm}%":
+		set {alerts.%player%} to true
+		stop
+		
+#-----------------------------------------------------------------------------------------------------------------#
+
+#	Anti Spam Bots
+
+on join:
+	delete {auth.%uuid%}
+	set {Banwave} to true
+	set {AntiBots} to true
+	set {PreventHacks} to true
+	set {AntiSpam} to true
+	set {AutoBan} to true
+
+on chat:
+	if {AntiBots} is true:
+		if {auth.%uuid%} is set:
+			cancel the event
+			send "&c&l(!) &cPlease move before you chat!"
+
+on any move:
+	if {AntiBots} is true:
+		if {auth.%player%} is not set:
+			set {auth.%player%} to true
+			send "%{Prefix}% &b%player% &7is an actual player." to console
+		
+
+#-----------------------------------------------------------------------------------------------------------------#
+
+#	Configuration Menu
+
+command /config:
+	permission: exosec.config
+	permission message: &cYou aren't permitted to access this.
+	trigger:
+		wait 1 tick
+		set {_num} to -1
+		open chest with 1 row named "&8&l+ &3Configuration" to player
+		loop 9 times:
+			add 1 to {_num}
+			format slot {_num} of player with gray stained glass pane named " " to be unstealable
+
+		if {PreventHacks} is true:
+			format slot 0 of player with light green dye named "&aPrevent Hacks" with lore "&7Enabled" to run [set {PreventHacks} to false]->[send "%{Prefix}% &7Disabled Prevent Hacks"]->[make player execute command "config"]
+		else if {PreventHacks} is false:
+			format slot 0 of player with gray dye named "&cPrevent Hacks" with lore "&7Disabled" to run [set {PreventHacks} to true]->[send "%{Prefix}% &7Enabled Prevent Hacks"]->[make player execute command "config"]
+			
+		if {Banwave} is true:
+			format slot 1 of player with light green dye named "&aBanwave" with lore "&7Enabled" to run [set {Banwave} to false]->[send "%{Prefix}% &7Disabled Banwave"]->[make player execute command "config"]
+		else if {Banwave} is false:
+			format slot 1 of player with gray dye named "&cBanwave" with lore "&7Disabled" to run [set {Banwave} to true]->[send "%{Prefix}% &7Enabled Banwave"]->[make player execute command "config"]
+			
+		if {AutoBan} is true:
+			format slot 2 of player with light green dye named "&aAutoBan" with lore "&7Enabled" to run [set {AutoBan} to false]->[send "%{Prefix}% &7Disabled AutoBan"]->[make player execute command "config"]
+		else if {AutoBan} is false:
+			format slot 2 of player with gray dye named "&cAutoBan" with lore "&7Disabled" to run [set {AutoBan} to true]->[send "%{Prefix}% &7Enabled AutoBan"]->[make player execute command "config"]
+			
+		if {AntiSpam} is true:
+			format slot 3 of player with light green dye named "&aAntiSpam" with lore "&7Enabled" to run [set {AntiSpam} to false]->[send "%{Prefix}% &7Disabled AntiSpam"]->[make player execute command "config"]
+		else if {AntiSpam} is false:
+			format slot 3 of player with gray dye named "&aAntiSpam" with lore "&7Disabled" to run [set {AntiSpam} to true]->[send "%{Prefix}% &7Enabled AntiSpam"]->[make player execute command "config"]
+			
+		if {AntiBots} is true:
+			format slot 4 of player with light green dye named "&aAntiBots" with lore "&7Enabled" to run [set {AntiBots} to false]->[send "%{Prefix}% &7Disabled AntiBots"]->[make player execute command "config"]
+		else if {AntiBots} is false:
+			format slot 4 of player with gray dye named "&cAntiBots" with lore "&7Disabled" to run [set {AntiBots} to true]->[send "%{Prefix}% &7Enabled AntiBots"]->[make player execute command "config"]
+			
+		# Reload
+		format slot 8 of player with feather named "&3Reload Config" with lore "&7Reloads the configuration file" to run [make console execute command "sk reload %script name%"]->[send "%{Prefix}% &7Reloaded the configuration file."]
+		
+#-----------------------------------------------------------------------------------------------------------------#
+
+#	Player Statistics (Hacking Related)
+
+command /stats [<offline player>]:
+	permission: exosec.stats
+	permission message: &cYou aren't permitted to access this.
+	trigger:
+		if arg 1 is set:
+			wait 1 tick
+			set {_num} to -1
+			open chest with 1 row named "&8&l+ &3Statistics" to player
+			loop 9 times:
+				add 1 to {_num}
+				format slot {_num} of player with gray stained glass pane named " " to be unstealable
+			format slot 1 of player with redstone named "&4Hack Usage" with lore "&7KillAura: %{killaura.%arg 1%}%||&7MultiAura: %{multiaura.%arg 1%}%||&7Flight: %{fly.%arg 1%}%||&7FastBow: %{fastbow.%arg 1%}%||&7Jesus: %{jesus.%arg 1%}%||&7Fastbreak: %{fastbreak.%arg 1%}%||&7Fastplace: %{fastplace.%arg 1%}%||||&fAverage Violations: %{average-hacks.%arg 1%}%" to be unstealable
+			#format slot 4 of player with skull of "%arg 1%" parsed as an offline player named "&e%arg 1%" to be unstealable
+			format slot 8 of player with feather named "&3Refresh Stats" with lore "&7Refreshes the statistics of %arg 1%" to run [make player execute command "stats %arg 1%"]
+		
+#-----------------------------------------------------------------------------------------------------------------#
+
+#	Anti Spam System
+
+on chat:
+	if {AntiSpam} is true:
+		if player has permission "%{BypassAntiSpam}%":
+			stop
+		else:
+			set {_waited} to difference between {spam.%player%.lastused} and now
+			if {_waited} is less than 1 seconds:
+				send "&cDon't repeat yourself!" to player
+				cancel the event
+		set {spam.%player%.lastused} to now
+
+#-----------------------------------------------------------------------------------------------------------------#		
+		
+#	Connection Tracking
+
+on join:
+	if {registered.%{uuid.%player%}%} is not set:
+		set {registered.%{uuid.%player%}%} to true
+		if {ip-registered.%ip address of player%} is not set:
+			send "%{Prefix}% &8&o// &eNew player &8&o// &e%player% (%uuid of player%) has joined for the first time." to console
+			set {ip-registered} to true
+		else:
+			send "%{Prefix}% &8&o// &eAlternative account &8&o// &e%player% (%uuid of player%) has joined with an alternative account." to console
+			if {alts::%ip address of player%::*} does not contain "&7%player% &8(%uuid of player%)":
+				add "&7%player% &8(%uuid of player%)" to {alts::%ip of player%::*}
+
+		
+#-----------------------------------------------------------------------------------------------------------------#
+
+#	Points Reset
+
+every 5 minutes:
+	loop all players:
+		if {killaura.%loop-player%} > 0:
+			remove 1 from {killaura.%loop-player%}
+		if {antikb.%loop-player%} > 0:
+			remove 1 from {antikb.%loop-player%}
+		if {sneaking.%loop-player%} > 0:
+			remove 1 from {sneaking.%loop-player%}
+		if {fastplace.%loop-player%} > 0:
+			remove 1 from {fastplace.%loop-player%}
+		if {fastbreak.%loop-player%} > 0:
+			remove 1 from {fastbreak.%loop-player%}
+		if {fly.%loop-player%} > 0:
+			remove 1 from {fly.%loop-player%}
+		if {jesus.%loop-player%} > 0:
+			remove 1 from {jesus.%loop-player%}
+		if {fastbow.%loop-player%} > 0:
+			remove 1 from {fastbow.%loop-player%}
+		add "%loop-player%" to {_total::*}
+		send "%{Prefix}% &7Automatically reset points of &b%size of {_total::*}%&7 Players." to console
+		
+#-----------------------------------------------------------------------------------------------------------------#
+
+#	Commands
+
+# Main
+command /exo [<text>] [<offline player>] [<text>] [<text>]:
+	permission: exosec.admin
+	permission message: &eExoSec &8&o// &cYou are not allowed to use this.
+	trigger:
+		if arg 1 is not set:
+			loop 100 times:
+				send " "
+			send "%{Prefix}% &8| &bCommand guide"
+			send " "
+			send "&6• &e/exo check <player>"
+			send "&7&oCheck the information of a player"
+			send " "
+			send "&6• &e/exo lag"
+			send "&7&oCheck to see if the server is lagging or not"
+			send " "
+			send "&6• &e/exo garbage"
+			send "&7&oRun the garbage collector"
+			send " "
+			send "&6• &e/exo notifications"
+			send "&7&oToggle your notifications"
+			send " "
+			send "&6• &e/exo reload"
+			send "&7&oReload the configuration file"
+			send " "
+			send "&6• &e/exo banwave"
+			send "&7&oBan all of those pesky hackers"
+			send " "
+			send "&6• &e/exo kick <player> <reason>"
+			send "&7&oKick a player via ExoSec"
+			send " "
+			send "&6• &e/exo ban <player> <reason>"
+			send "&7&oBan a player via ExoSec"
+		if arg 1 is set:
+			if arg 1 is "check":
+				if arg 2 is set:
+					wait 1 tick
+					open chest with 2 rows named "Info: %arg 2%"
+					set {_s} to -1
+					loop 17 times:
+						add 1 to {_s}
+						format slot {_s} of player with magenta stained glass named " " to be unstealable
+					format slot 4 of player with skull named "%arg 2%" parsed as offline player named "&6Player: &e%display name of arg 2%" to be unstealable
+					format slot 12 of player with book named "&e&lUsed Hacks" with lore "&7||&6%{hacks::%arg 1%}%" to be unstealable
+				else:
+					send "&cYou must specify a player."
+			else if arg 1 is "lag":
+				set {_tps} to tps of server
+				send "%{Prefix}% &3TPS: &f%{_tps}%"
+				if {_tps} is between 1 and 10:
+					send "&7Extreme Lag"
+				else if {_tps} is between 10 and 15:
+					send "&7Minor Lag"
+				else if {_tps} is between 15 and 20:
+					send "&7No Lag"
+			else if arg 1 is "garbage":
+				send "%{Prefix}% &aRunning server garbage collector!"
+				System.gc{}
+				loop all entities:
+					loop entity is an item:
+						kill loop-entity
+			else if arg 1 is "notifications":
+				if {alerts.%player%} is set:
+					delete {alerts.%player%}
+					send "%{Prefix}% &7Disabled notifications for ExoSec"
+				else:
+					set {alerts.%player%} to true
+					send "%{Prefix}% &7Enabled notifications for ExoSec"
+			else if arg 1 is "reload":
+				make console execute command "sk reload %script name%"
+				send "%{Prefix}% &7Reloaded ExoSec!"
+			else if arg 1 is "banwave":
+				access "IntitiateBanwave"
+				send "%{Prefix}% &7Running a Ban Wave."
+			else if arg 1 is "kick":
+				if arg 2 is set:
+					if arg 3 is set:
+						kick arg-1 due to "%{Prefix}% &7Kicked%nl%&7For: &e%arg 3%"
+						broadcast "&9Server &8&o// &9%arg 1% &7was kicked from the server for &9%arg 3%"
+					else:
+						send "&cPlease specify a reason."
+				else:
+					send "&cPlease specify a player."
+			else if arg 1 is "ban":
+				if arg 2 is set:
+					if arg 3 is set:
+						kick arg-1 due to "%{Prefix}% &7Banned%nl%&7For: &e%arg 3%"
+						ban arg-1 due to "%{Prefix}% &7Banned%nl%&7For: &e%arg 3%"
+						broadcast "&9Server &8&o// &9%arg 1% &7was banned from the server for &9%arg 3%"
+					else:
+						send "&cPlease specify a reason."
+				else:
+					send "&cPlease specify a player."
+				
+#	Punishments
+
+#	Ban
+
+command /exoban [<offline player>] [<text>]:
+	permission: exosec.ban
+	permission message: &cYou aren't permitted to access this.
+	trigger:
+		if arg 1 is set:
+			if arg 2 is set:
+				set {status.%arg 1%} to "&c&nBanned"
+				kick arg-1 due to "%{Prefix}% &eReason: &7%arg 2%"
+				ban arg-1 due to "%{Prefix}% &eReason: &7%arg 2%"
+				send "%{Prefix}% &7You have banned &b%arg 1% &7for &b%arg 2%"
+				add "&7%arg 1% &8- &8[&7%arg 2%&8]" to {recentbans::*}
+				send "%{Prefix}% &b%command sender% &7has banned &b%arg 1% &7for &b%arg 2%" to console
+				loop all players:
+					if {alerts.%loop-player%} is true:
+						send "%{Prefix}% &b%command sender% &7has banned &b%arg 1% &7for &b%arg 2%" to loop-player
+			else:
+				send "&cPlease specify a reason."
+		else:
+			send "&cPlease specify a player."
+				
+#	Kick
+
+command /exokick [<offline player>] [<text>]:
+	permission: exosec.ban
+	permission message: &cYou aren't permitted to access this.
+	trigger:
+		if arg 1 is set:
+			if arg 2 is set:
+				kick arg 1 due to "%{Prefix}% &eReason: &7%arg 2%"
+				send "%{Prefix}% &7You have kicked &b%arg 1% &7for &b%arg 2%"
+				send "%{Prefix}% &b%command sender% &7has kicked &b%arg 1% &7for &b%arg 2%" to console
+				loop all players:
+					if {alerts.%loop-player%} is true:
+						send "%{Prefix}% &b%command sender% &7has kicked &b%arg 1% &7for &b%arg 2%" to loop-player
+			else:
+				send "&cPlease specify a reason."
+		else:
+			send "&cPlease specify a player."
+				
+#
+
+#	Checks command
+							
+command /checks:
+	permission: exosec.checks
+	permission message: &cYou aren't permitted to access this.
+	trigger:
+		set {checks.active} to size of {checks::*}
+		wait 1 tick
+		open chest with 5 rows named "&9Check Manager" to player
+		set {_num} to -1
+		loop 45 times:
+			add 1 to {_num}
+			format slot {_num} of player with white stained glass pane named " " to be unstealable
+		wait 1 tick
+		set {_num} to 35
+		loop 9 times:
+			add 1 to {_num}
+			format slot {_num} of player with black stained glass pane named " " to be unstealable
+		if {check.flight} is not set:
+			format slot 0 of player with gray dye named "&9Flight &7(Disabled)" with lore "&7Toggle this check" to run [set {check.flight} to true]->[send "%{Prefix}% &7Enabled check &aFlight"]->[add 1 to {checks.active}]->[add "Flight" to {checks::*}]->[make player execute command "checks"]
+		else:
+			format slot 0 of player with light green dye named "&9Flight &7(Enabled)" with lore "&7Toggle this check" to run [delete {check.flight}]->[send "%{Prefix}% &7Disabled check &cFlight"]->[subtract 1 from {checks.active}]->[subtract "Flight" from {checks::*}]->[make player execute command "checks"]
+		if {check.killaura} is not set:
+			format slot 1 of player with gray dye named "&9KillAura &7(Disabled)" with lore "&7Toggle this check" to run [set {check.killaura} to true]->[send "%{Prefix}% &7Enabled check &aKillAura"]->[add 1 to {checks.active}]->[add "KillAura" to {checks::*}]->[make player execute command "checks"]
+		else:
+			format slot 1 of player with light green dye named "&9KillAura &7(Enabled)" with lore "&7Toggle this check" to run [delete {check.killaura}]->[send "%{Prefix}% &7Disabled check &cKillAura"]->[subtract 1 from {checks.active}]->[subtract "KillAura" from {checks::*}]->[make player execute command "checks"]
+		if {check.jesus} is not set:
+			format slot 2 of player with gray dye named "&9Jesus &7(Disabled)" with lore "&7Toggle this check" to run [set {check.jesus} to true]->[send "%{Prefix}% &7Enabled check &aJesus"]->[add 1 to {checks.active}]->[add "Jesus" to {checks::*}]->[make player execute command "checks"]
+		else:
+			format slot 2 of player with light green dye named "&9Jesus &7(Enabled)" with lore "&7Toggle this check" to run [delete {check.jesus}]->[send "%{Prefix}% &7Disabled check &cJesus"]->[subtract 1 from {checks.active}]->[subtract "Jesus" from {checks::*}]->[make player execute command "checks"]
+		if {check.fastbow} is not set:
+			format slot 3 of player with gray dye named "&9FastBow &7(Disabled)" with lore "&7Toggle this check" to run [set {check.fastbow} to true]->[send "%{Prefix}% &7Enabled check &aFastBow"]->[make player execute command "checks"]->[add "FastBow" to {checks::*}]->[add 1 to {checks.active}]
+		else:
+			format slot 3 of player with light green dye named "&9FastBow &7(Enabled)" with lore "&7Toggle this check" to run [delete {check.fastbow}]->[send "%{Prefix}% &7Disabled check &cFastBow"]->[subtract 1 from {checks.active}]->[subtract "FastBow" from {checks::*}]->[make player execute command "checks"]
+		if {check.nuker} is not set:
+			format slot 4 of player with gray dye named "&9Nuker &7(Disabled)" with lore "&7Toggle this check" to run [set {check.nuker} to true]->[send "%{Prefix}% &7Enabled check &aNuker"]->[add 1 to {checks.active}]->[add "Nuker" to {checks::*}]->[make player execute command "checks"]
+		else:
+			format slot 4 of player with light green dye named "&9Nuker &7(Enabled)" with lore "&7Toggle this check" to run [delete {check.nuker}]->[send "%{Prefix}% &7Disabled check &cNuker"]->[make player execute command "checks"]->[subtract 1 from {checks.active}]->[subtract "Nuker" from {checks::*}]
+		format slot 40 of player with book named "&3Enabled Checks" with lore "&7Enabled: &a%{checks.active}%" to run [send "&e&lChecks"]->[send "&eEnabled: &a%{checks.active}%"]->[send "&eChecks: &a%{checks::*}%"]
+		if {check.autosteal} is not set:
+			format slot 5 of player with gray dye named "&9AutoSteal &7(Disabled)" with lore "&7Toggle this check" to run [set {check.AutoSteal} to true]->[send "%{Prefix}% &7Enabled check &cAutoSteal"]->[add 1 to {checks.active}]->[add "AutoSteal" to {checks::*}]->[make player execute command "checks"]
+		else:
+			format slot 5 of player with light green dye named "&9AutoSteal &7(Enabled)" with lore "&7Toggle this check" to run [delete {check.AutoSteal}]->[send "%{Prefix}% &7Disabled check &cAutoSteal"]->[make player execute command "checks"]->[subtract 1 from {checks.active}]->[subtract "AutoSteal" from {checks::*}]
+		if {check.fasteat} is not set:
+			format slot 6 of player with gray dye named "&9FastEat &7(Disabled)" with lore "&7Toggle this check" to run [set {check.FastEat} to true]->[send "%{Prefix}% &7Enabled check &cFastEat"]->[add 1 to {checks.active}]->[add "FastEat" to {checks::*}]->[make player execute command "checks"]
+		else:
+			format slot 6 of player with light green dye named "&9FastEat &7(Enabled)" with lore "&7Toggle this check" to run [delete {check.FastEat}]->[send "%{Prefix}% &7Disabled check &cFastEat"]->[make player execute command "checks"]->[subtract 1 from {checks.active}]->[subtract "FastEat" from {checks::*}]
+		if {check.Speed} is not set:
+			format slot 7 of player with gray dye named "&9Speed &7(Disabled)" with lore "&7Toggle this check" to run [set {check.Speed} to true]->[send "%{Prefix}% &7Enabled check &cSpeed"]->[add 1 to {checks.active}]->[add "Speed" to {checks::*}]->[make player execute command "checks"]
+		else:
+			format slot 7 of player with light green dye named "&9Speed &7(Enabled)" with lore "&7Toggle this check" to run [delete {check.Speed}]->[send "%{Prefix}% &7Disabled check &cSpeed"]->[make player execute command "checks"]->[subtract 1 from {checks.active}]->[subtract "Speed" from {checks::*}]
+	
+#	Alts Command	
+	
+on join:
+	set {uuid.%player%} to uuid of player
+	add "&7%player% &8(%uuid of player%)" to {alts::%ip address of player%::*}
+
+command /alts [<offline player>]:
+	permission: exosec.alts
+	permission message: &cYou are not allowed to use this!
+	aliases: exosec.alts
+	trigger:
+		if arg 1 is set:
+			send "%{r.Prefix}% &8&o// &eAlts &8&o// &e%arg 1%"
+			if {alts::%ip address of arg 1%::*} is set:
+				loop {alts::%ip address of arg 1%::*}:
+					send "%loop-value%"
+			else:
+				send "%{r.Prefix}% &cThis player has never joined before."
+		else:
+			send "%{r.Prefix}% &cYou must specify a player."
+	
+#	Banwave Command
+
+function "IntitiateBanwave":
+	send "%{r.Prefix}% &fBan wave initiating!" to console
+	wait 4 ticks
+	loop all players:
+		if {hackers::*} contains "%loop-player%":
+			if loop-player is op:
+				send "%{Prefix}% &e%loop-player% avoided the Banwave as they were an Operator." to console
+			else:
+				broadcast "%{Prefix}% &8&o// &cBanwave &8&o// %{r.AlertMessageColor}% %loop-player% was banned from the server."
+				kick loop-player due to "%{Prefix}%%nl%%nl%&7Banned by%nl%&eBanwave%nl%%nl%&7Reason%nl%&eHacking%nl%%nl%&cPermanently banned."
+				ban loop-player due to "%{Prefix}%%nl%%nl%&7Banned by%nl%&eBanwave%nl%%nl%&7Reason%nl%&eHacking%nl%%nl%&cPermanently banned."
+				send "%{Prefix}% &8&o// &cBanwave &8&o// &e %loop-player% was banned from the server." to console
+					
+on script load:
+	if {Banwave} is true:
+		loop 1000 times:
+			wait 30 minutes
+			access "Banwave"
+	
+#-----------------------------------------------------------------------------------------------------------------#
+
+#	Checks
+
+#	KillAura 1
+
+on click:
+	add 1 to {cps.%player%}
+
+every second:
+	loop all players:
+		delete {cps.%loop-player%}
+		
+on damage:
+	if attacker is holding a sword or an axe:
+		if {check.killaura} is true:
+			gamemode of attacker is survival:
+				add 1 to {antispamexo.killaura}
+				if {cps.%attacker%} is greater than 15:
+					if {PreventHacks} is true:
+						cancel the event
+					if {antispamexo} is greater than 5:
+						if ping of attacker is between 150 and 6000000:
+							loop all players:
+								if {alerts.%loop-player%} is true:
+									if ping of attacker is between 150 and 6000000:
+										send "&eExo &8&o// &6KillAura &8&o// &6%shooter% &8&o// &6Ping: %ping of shooter% &8&o// &6CPS: %{cps.%shooter%}% &8&o// &cLagging" to loop-player
+									else if ping of attacker is less than 100:
+										send "&eExo &8&o// &6KillAura &8&o// &6%shooter% &8&o// &6Ping: %ping of shooter% &8&o// &6CPS: %{cps.%shooter%}% &8&o// &cNot lagging" to loop-player
+										if {hackers::*} does not contain "%attacker%":
+											add "%attacker%" to {hackers::*}
+											set {hacker-id.%attacker%} to {id2}+1
+										if {hacks::%attacker%} does not contain "KillAura":
+											add "KillAura" to {hacks::%attacker%}
+										delete {antispamexo.killaura}
+										if {AutoBan} is true:
+											if {cps.%attacker%} > {Vl-Required}:
+												kick attacker due to "%{Prefix}% &7Banned%nl%&7Using KillAura"
+												ban attacker due to "%{Prefix}% &7Banned%nl%&7Using KillAura"
+												set {status.%attacker%} to "&c&nBanned"
+												send "%{Prefix}% &7AutoBanned &b%attacker% &7due to use of &bKillAura" to console
+
+#	KillAura 2
+											
+on damage:
+	if attacker is a player:
+		if attacker is holding a sword or an axe:
+			if {check.killaura} is true:
+				if {%attacker%.chicken} is not set:
+					set {_pos} to position of block 1.7 meters above attacker's head
+					spawn chicken at {_pos}
+					set name of spawned chicken to "&c&lKFC"
+					set {_trap} to spawned chicken
+					set {%attacker%.chicken} to true
+					hide spawned chicken from all players
+					wait 3 seconds
+					clear {%attacker%.chicken}
+					loop 14 times:
+						wait 2 ticks
+						push spawned chicken backwards at speed 0.1
+						set {_pos} to position of block 1.7 meters above attacker's head
+						teleport spawned chicken to {_pos}
+						set {_pos} to position of block 1.7 meters above attacker's head
+				if attacker is sprinting:
+					push spawned chicken in direction of attacker at speed 0.19
+				else:
+					push spawned chicken in direction of attacker at speed 0.06
+			
+on damage:
+	if attacker is a player:
+		if attacker is holding a sword or an axe:
+			if victim is a chicken:
+				if name of victim is "&c&lKFC":
+					if {cps.%player%} > 5:
+						loop all players:
+							if {alerts.%loop-player%} is true:
+								if ping of attacker is between 150 and 6000000:
+									send "&eExo &8&o// &6KillAura &8&o// &6%shooter% &8&o// &6Ping: %ping of shooter% &8&o// &6CPS: %{cps.%shooter%}% &8&o// &cLagging" to loop-player
+								else if ping of attacker is less than 100:
+									send "&eExo &8&o// &6KillAura &8&o// &6%shooter% &8&o// &6Ping: %ping of shooter% &8&o// &6CPS: %{cps.%shooter%}% &8&o// &cNot lagging" to loop-player
+									if {hackers::*} does not contain "%attacker%":
+										add "%attacker%" to {hackers::*}
+										set {hacker-id.%attacker%} to {id2}+1
+									if {hacks::%attacker%} does not contain "KillAura":
+										add "KillAura" to {hacks::%attacker%}
+		
+#	Jesus
+
+on walk on water:
+	if {check.jesus} is true:
+		add 1 to {antispamexo.Jesus}
+		block under player is air:
+			if {antispamexo.Jesus} is greater than 5:
+				gamemode of player is survival:
+					if {PreventHacks} is true:
+						set {loc.%player%} to location of player
+						teleport player 10 meters under {loc.%player%}
+					loop all players:
+						if {alerts.%loop-player%} is true:
+							if ping of player is between 150 and 6000000:
+								send "&eExo &8&o// &6Jesus &8&o// &6%player% &8&o// &6Ping: %ping of player% &8&o// &cLagging" to loop-player
+							else if ping of player is less than 100:
+								send "&eExo &8&o// &6Jesus &8&o// &6%player% &8&o// &6Ping: %ping of player% &8&o// &cNot lagging" to loop-player
+								if {hackers::*} does not contain "%player%":
+									add "%player%" to {hackers::*}
+									set {hacker-id.%player%} to {id2}+1
+								if {hacks::%player%} does not contain "Jesus":
+									add "Jesus" to {hacks::%player%}
+								delete {antispamexo.Jesus}
+								if {AutoBan} is true:
+									if {cps.%player%} > {Vl-Required}:
+										kick player due to "%{Prefix}% &7Banned%nl%&7Using Jesus"
+										ban player due to "%{Prefix}% &7Banned%nl%&7Using Jesus"
+										set {status.%player%} to "&c&nBanned"
+										send "%{Prefix}% &7AutoBanned &b%player% &7due to use of &bJesus" to console
+		
+on quit:
+	clear {Forcefield.%player%}
+on skript stop:
+	loop all players:
+		clear {Forcefield.%loop-player%}
+						
+#	Flight
+
+on any movement:
+	if player's gamemode is not creative:
+		if player's fly mode is not true:
+			if player is not riding:
+				if {check.fly} is true:
+					if block 0.1 below the player is air:
+						if {flytest.%player%} is set:
+							set {_y} to y coordinate of location of player
+							set {_ry} to rounded up {_y}
+							set {_check} to "%{_ry}-{_y}%"
+							if player doesn't have jump boost:
+								if {_check} is not "0.47" or "0.45" or "0.63" or "0.72" or "0.2" or "0.18" or "0.68" or "0.6" or "0.3" or "0.38" or "0.87" or "0.94" or "0.77" or "0.55" or "0.8" or "0.69" or "0.97" or "0.81" or "0.74" or "0.82" or "0.85" or "0.62" or "0.61" or "0.79" or "0.53" or "0.66" or "0.88" or "0.42" or "0.39" or "0.44" or "0.57" or "0.64" or "0.02" or "0.84" or "0.9" or "0.52" or "0.48" or "0.51" or "0.49" or "0.43" or "0.23" or "0.11" or "0.07" or "0.12" or "0.24" or "0.43" or "0.7" or "0.36" or "0.17" or "0.06" or "0.04" or "0.09" or "0.14" or "0.86" or "0.67" or "0.56" or "0.54" or "0.59" or "0.73" or "0.9" or "0.58" or "0.34" or "0.21" or "0.08" or "0.48" or "0.71" or "0.5" or "0.75" or "0.83" or "0" or "1" or "0.33" or "0.25" or "0.46" or "0.98":
+									if {flytest.%player%} is less than {_y}:
+										if block 1 below the player is trapdoor or bed or repeater or end portal frame or chest or stairs or fence:
+											stop
+										else:
+											add 1 to {fly.%player%}
+											set {_found} to true
+									if {_y} is {flytest.%player%}:
+										if {_check} is not "0.21" or "0.98" or "0.9" or "1" or "0.83" or "0.58" or "0.75" or "0.74" or "0.25" or "0.5" or "0":
+											add 1 to {fly.%player%}
+											loop all players:
+												if {recieve.%loop-player%} is true:
+													send "&eExo &8&o// &6Flight &8&o// &6%player% &8&o// &6Ping: %ping of player%" to loop-player
+											
+				if {check.jesus} is true:
+					if block 0.25 below the player or block 1 below the player or block 0.5 below the player or block 0.75 below the player is water:
+						if block 0.25 above the player is air:
+							set {_y} to y coordinate of location of player
+							set {_ry} to rounded up {_y}
+							set {_check} to "%{_ry}-{_y}%"
+							if {_check} is not "0.16" or "0.12" or "0.1" or "0.04" or "0.93" or "0.78" or "0.61" or "0.96" or "0.19" or "0.24" or "0.54" or "0.76" or "0.02" or "0.86" or "0.44" or "0.47" or "0.14" or "0.07" or "0.68" or "0.64" or "0.85" or "0.15" or "0.48" or "0.06" or "0.49" or "0.62" or "0.43" or "0.13" or "0.84" or "0.51" or "0.69" or "0.74" or "0.75" or "0.58" or "1" or "0.57" or "0.7" or "0.21" or "0.97" or "0.81" or "0.77" or "0.22" or "0.03" or "0.91" or "0.08" or "0.79" or "0.18" or "0.98" or "0.83" or "0.82" or "0.2" or "0.46" or "0.42" or "0.77" or "0.65" or "0.66" or "0.92" or "0.71" or "0.88" or "0.67" or "0.6" or "0.55" or "0.52" or "0.9" or "0.23" or "0.5" or "0.53" or "0.56" or "0.25":
+								if {_check} is "0":
+									set {_x} to rounded down x coordinate of location of player-1
+									set {_y} to rounded down y coordinate of location of player
+									set {_z} to rounded down z coordinate of location of player-1
+									set {_loc} to location at {_x}, {_y}, {_z} in player's world
+									if block at {_loc} is not water:
+										set {_failed} to true
+								if {_failed} is not set:
+									if block 1 below the player is fence or trapdoor or bed or repeater or end portal frame or chest or stairs:
+										stop
+									else:
+										add 1 to {jesustest.%player%}
+										if {jesustest.%player%} is more than 0:
+											clear {jesustest.%player%}
+											if block 0.05 above the player is air:
+												add 1 to {jesus.%player%}
+												if {jesus.%player%} is greater than 3:
+													loop all players:
+														if {recieve.%loop-player%} is true:
+															send "&eExo &8&o// &6Jesus &8&o// &6%player% &8&o// &6Ping: %ping of player%" to loop-player
+						else:
+							wait 2 seconds
+							if {jesustest.%player%} is more than 0:
+								remove 1 from {jesustest.%player%}
+					set {flytest.%player%} to y coordinate of location of player
+#	FastBow
+
+every second:
+	loop all players:
+		delete {aps.%loop-player%}
+
+on shoot:
+	if {check.fastbow} is true:
+		shooter is a player:
+			add 1 to {antispamexo.fastbow}
+			add 1 to {fastbow.%shooter%}
+			if {aps.%shooter%} is between 5 and 10000:
+				if {antispamexo.fastbow} is greater than 5:
+					loop all players:
+						if {alerts.%loop-player%} is true:
+							if ping of shooter is between 150 and 6000000:
+								send "&eExo &8&o// &6FastBow &8&o// &6%shooter% &8&o// &6Ping: %ping of shooter% &8&o// &6ArrowsPerSecond %{aps.%shooter%}% &8&o// &cLagging" to loop-player
+							else if ping of shooter is less than 100:
+								send "&eExo &8&o// &6FastBow &8&o// &6%shooter% &8&o// &6Ping: %ping of shooter% &8&o// &6ArrowsPerSecond: %{aps.%shooter%}% &8&o// &cNot lagging" to loop-player
+								if {hackers::*} does not contain "%shooter%":
+									add "%shooter%" to {hackers::*}
+									set {hacker-id.%shooter%} to {id2}+1
+								if {hacks::%shooter%} does not contain "Fast Bow":
+									add "Fast Bow" to {hacks::%shooter%}
+							delete {antispamexo.fastbow}
+							if {AutoBan} is true:
+								if {aps.%shooter%} > {Vl-Required}:
+									kick shooter due to "%{Prefix}% &7Banned%nl%&7Using FastBow"
+									ban shooter due to "%{Prefix}% &7Banned%nl%&7Using FastBow"
+									set {status.%shooter%} to "&c&nBanned"
+									send "%{Prefix}% &7AutoBanned &b%shooter% &7due to use of &bFastBow" to console
+							
+#	AutoSneak
+
+on chat:
+	if {check.autosneak} is true:
+		if player is sneaking:
+			add 1 to {antispamexo.autosneak}
+			add 1 to {Vl-AS.%player%}
+			if {antispamexo.autosneak} is greater than 3:
+				loop all players:
+					if {alerts.%loop-player%} is true:
+						if ping of player is greater than 150:
+							send "&eExo &8&o// &6AutoSneak &8&o// &6%player% &8&o// &6Ping: %ping of player% &8&o// &cLagging" to loop-player
+						else if ping of player is less than 100:
+							send "&eExo &8&o// &6AutoSneak &8&o// &6%player% &8&o// &6Ping: %ping of player% &8&o// &cNot lagging" to loop-player
+							if {hackers::*} does not contain "%player%":
+								add "%player%" to {hackers::*}
+								set {hacker-id.%player%} to {id2}+1
+							if {hacks::%player%} does not contain "AutoSneak":
+								add "AutoSneak" to {hacks::%player%}
+						delete {antispamexo.autosneak}
+						if {AutoBan} is true:
+							if {Vl-AS.%player%} > {Vl-Required}:
+								kick player due to "%{Prefix}% &7Banned%nl%&7Using AutoSneak"
+								ban player due to "%{Prefix}% &7Banned%nl%&7Using AutoSneak"
+								set {status.%player%} to "&c&nBanned"
+								send "%{Prefix}% &7AutoBanned &b%player% &7due to use of &bAutoSneak" to console
+							
+#	AutoSteal
+
+every 5 seconds:
+	loop all players:
+		delete {AutoSteal.%loop-player%}
+
+on inventory click:
+	if {check.AutoSteal} is true:
+		add 1 to {antispamexo.AutoSteal}
+		add 1 to {AutoSteal.%player%}
+		if {antispamexo.AutoSteal} is greater than 5:
+			if {AutoSteal.%player%} is greater than 7:
+				if ping of player is between 150 and 6000000:
+					loop all players:
+						if {alerts.%loop-player%} is true:
+							if ping of player is between 150 and 6000000:
+								send "&eExo &8&o// &6AutoSteal &8&o// &6%player% &8&o// &6Ping: %ping of player% &8&o// &cLagging" to loop-player
+							else if ping of player is less than 100:
+								send "&eExo &8&o// &6AutoSteal &8&o// &6%player% &8&o// &6Ping: %ping of player% &8&o// &cNot lagging" to loop-player
+								if {hackers::*} does not contain "%player%":
+									add "%player%" to {hackers::*}
+									set {hacker-id.%player%} to {id2}+1
+								if {hacks::%player%} does not contain "AutoSteal":
+									add "AutoSteal" to {hacks::%player%}
+									
+#	FastPlace
+
+every 5 seconds:
+	loop all players:
+		delete {FastPlace.%loop-player%}
+		
+on block place:
+	if {check.FastPlace} is true:
+		add 1 to {antispamexo.FastPlace}
+		add 1 to {FastPlace.%player%}
+		if {antispamexo.FastPlace} is greater than 5:
+			if {FastPlace.%player%} is greater than 7:
+				if ping of player is between 150 and 6000000:
+					loop all players:
+						if {alerts.%loop-player%} is true:
+							if ping of player is between 150 and 6000000:
+								send "&eExo &8&o// &6FastPlace &8&o// &6%player% &8&o// &6Ping: %ping of player% &8&o// &cLagging" to loop-player
+							else if ping of player is less than 100:
+								send "&eExo &8&o// &6FastPlace &8&o// &6%player% &8&o// &6Ping: %ping of player% &8&o// &cNot lagging" to loop-player
+								if {hackers::*} does not contain "%player%":
+									add "%player%" to {hackers::*}
+									set {hacker-id.%player%} to {id2}+1
+								if {hacks::%player%} does not contain "FastPlace":
+									add "FastPlace" to {hacks::%player%}
+								delete {antispamexo.FastEat}
+#	FastEat
+
+on consume:
+	if {check.fasteat}:
+		add 1 to {FastEat.%player%}
+		add 1 to {antispamexo.FastEat}
+		if {antispamexo.FastEat} is greater than 5:
+			if {FastEat.%player%} is greater than 7:
+				if ping of player is between 150 and 6000000:
+					loop all players:
+						if {alerts.%loop-player%} is true:
+							if ping of player is between 150 and 6000000:
+								send "&eExo &8&o// &6FastEat &8&o// &6%player% &8&o// &6Ping: %ping of player% &8&o// &cLagging" to loop-player
+							else if ping of player is less than 100:
+								send "&eExo &8&o// &6FastEat &8&o// &6%player% &8&o// &6Ping: %ping of player% &8&o// &cNot lagging" to loop-player
+								if {hackers::*} does not contain "%player%":
+									add "%player%" to {hackers::*}
+									set {hacker-id.%player%} to {id2}+1
+								if {hacks::%player%} does not contain "FastEat":
+									add "FastEat" to {hacks::%player%}
+								delete {antispamexo.FastEat}
+								
+#	Speed
+
+on any move:
+	if {check.Speed} is true:
+		player is sprinting:
+			speed of player is between 5 and 100:
+				add 1 to {Speed.%player%}
+				add 1 to {antispamexo.speed}
+				if {Speed.%player%} => 5:
+					if {PreventHacks} is true:
+						set player's walk speed to 0
+						push the player downwards at speed 5
+					if {antispamexo.speed} => 5:
+						loop all players:
+							if {alerts.%loop-player%} is true:
+								if ping of player is greater than 100:
+									send "&eExo &8&o// &6Speed &8&o// &6%player% &8&o// &6Ping: %ping of player% &8&o// &cLagging" to loop-player
+								else if ping of player is less than 100:
+									send "&eExo &8&o// &6Speed &8&o// &6%player% &8&o// &6Ping: %ping of player% &8&o// &cNot lagging" to loop-player
+								delete {antispamexo.speed}
+								
+#	AntiKB
+
+on damage:
+	if {check.antikb} is true:
+		if attacker is a player:
+			loop blocks in radius 1 around victim:
+				if loop-block is air or water or lava:
+					set {_l1} to location of the victim
+					set {_y1} to y-coordinates of victim
+					wait 0.4 seconds
+					set {_l2} to location of the victim
+					set {_y2} to y-coordinates of victim
+					if {_l1} = {_l2}:
+						if {_y1} = {_y2}:
+							add 1 to {antikb.%victim%}
+							loop all players:
+								if {alerts.%loop-player%} is true:
+									send "&eExo &8&o// &6AntiKB &8&o// &6%attacker% &8&o// &6Ping: %ping of player%" to loop-player
+						else:
+							stop
+					else:
+						stop
+						
+#	Fast Eat
+					
+on consume:
+	if {check.fasteat} is true:
+		if difference between {eat.%player%} and now is less than 2 ticks:
+			cancel event
+			set {eat.%player%} to now
+			loop all players:
+				if {alerts.%loop-player%} is true:
+					send "%{r.Prefix}% &8&o// &7[&aFastEat&7] &8&o// &a%player% &8&o// &aPing: %{ping.%player%}%" to loop-player
+	set {eat.%player%} to now
+	
+#	Regen
+
+on consume:
+	if {check.regen} is true:
+		if difference between {heal.%player%} and now is less than 2 ticks:
+			cancel event
+			set {heal.%player%} to now
+			loop all players:
+				if {alerts.%loop-player%} is true:
+					send "%{r.Prefix}% &8&o// &7[&aRegen&7] &8&o// &a%player% &8&o// &aPing: %{ping.%player%}%" to loop-player
+	set {heal.%player%} to now
+	
+#	AutoSneak
+
+on chat:
+	if {check.autosneak} is true:
+		if player is sneaking:
+			add 1 to {sneaking.%player%}
+			loop all players:
+				if {alerts.%loop-player%} is true:
+					send "%{r.Prefix}% &8&o// &7[&aAutoSneak&7] &8&o// &a%player% &8&o// &aPing: %{ping.%player%}%" to loop-player
+		stop
+
+on command:
+	if {check.autosneak} is true:
+		if player is sneaking:
+			add 1 to {sneaking.%player%}
+			loop all players:
+				if {alerts.%loop-player%} is true:
+					send "%{r.Prefix}% &8&o// &7[&aAutoSneak&7] &8&o// &a%player% &8&o// &aPing: %{ping.%player%}%" to loop-player
+		stop
+		
 					
      
         
